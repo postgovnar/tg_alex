@@ -18,32 +18,29 @@ def bot_main(context):
 
         send_text_message(text_path, message, markup_start, bot)
 
-
     @bot.message_handler(content_types=['text'])
     def text_handler(message):
         if message.text == 'Записаться на курс':
-            '''
-            bot.send_invoice(
-                chat_id=message.chat.id,
-                title="Доступ к курсу(текст 4)",
-                description="описание(текст 5)",
-                invoice_payload="your_payload",
-                currency='RUB',
-                provider_token=context.pay_token,
-                start_parameter="test",
-                prices=[types.LabeledPrice(label='Курс', amount=10000)]
-            )'''
-
-            # markup = types.InlineKeyboardMarkup()
-            # markup.row(types.InlineKeyboardButton(text='Перейти в канал', url=context.link_temp_chat))
-            # bot.send_message(message.chat.id, "Сейчас курс купить нельзя. Открыта предварительная запись на него.", reply_markup=markup_start)
-            # bot.reply_to(message, "Переходите в чат для записи", reply_markup=markup)
-            text_path = f'data/texts/about/price_names.txt'
+            text_path = f'data/texts/about/price.txt'
             photo_path = f'data/photos/about/оплата_занятий.jpg'
 
+            markup = types.ReplyKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton('Записаться'))
+            markup.add(types.InlineKeyboardButton('Не могу оплатить всю сумму сразу'))
+
+            send_photo_message(text_path, photo_path, message, markup, bot)
+        elif message.text == 'Записаться':
+            temp_list.append(message.from_user.id)
             temp_list.append(message.from_user.id)
 
-            send_photo_message(text_path, photo_path, message, types.ReplyKeyboardRemove(), bot)
+            text_path = f'data/texts/about/price_names.txt'
+            send_text_message(text_path, message, types.ReplyKeyboardRemove(), bot)
+
+        elif message.text == 'Не могу оплатить всю сумму сразу':
+            markup = types.InlineKeyboardMarkup()
+            markup.row(types.InlineKeyboardButton(text='Перейти в чат поддержки', url=context.link_temp_chat))
+            bot.send_message(message.chat.id, 'Пишите, постараемся найти компромисс')
+            bot.register_next_step_handler(message, start)
 
         elif message.text == 'Подробнее про курс':
 
@@ -99,22 +96,37 @@ def bot_main(context):
             send_photo_message(text_path, photo_path, message, markup, bot)
 
         elif message.from_user.id in temp_list:
-            temp_list.remove(message.from_user.id)
+            if temp_list.count(message.from_user.id) == 2:
+                temp_list.remove(message.from_user.id)
+                bot.send_message(context.log_chat_id, message.text)
+                bot.send_message(message.chat.id, 'В какие дни и в какое время вам удобнее всего ходить на занятия?')
 
-            bot.send_message(context.log_chat_id, message.text)
+            elif temp_list.count(message.from_user.id) == 1:
+                temp_list.remove(message.from_user.id)
+                bot.send_message(context.log_chat_id, message.text)
+                if context.payment_ready:
+                    '''
+                                bot.send_invoice(
+                                    chat_id=message.chat.id,
+                                    title="Доступ к курсу(текст 4)",
+                                    description="описание(текст 5)",
+                                    invoice_payload="your_payload",
+                                    currency='RUB',
+                                    provider_token=context.pay_token,
+                                    start_parameter="test",
+                                    prices=[types.LabeledPrice(label='Курс', amount=10000)]
+                                )'''
+                    print('sdsds')
+                else:
+                    markup = types.InlineKeyboardMarkup()
+                    markup.row(types.InlineKeyboardButton(text='Перейти в чат участников', url=context.link_temp_chat))
+                    markup.row(types.InlineKeyboardButton(text='Перейти в чат поддержки', url=context.link_temp_chat))
 
-            if context.payment_ready:
-                print('do_smth')
-            else:
-                markup = types.InlineKeyboardMarkup()
-                markup.row(types.InlineKeyboardButton(text='Перейти в канал', url=context.link_temp_chat))
-                markup.row(types.InlineKeyboardButton(text='Перейти в канал', url=context.link_temp_chat))
+                    text_path = f'data/texts/about/after_price_false'
 
-                text_path = f'data/texts/about/after_price_false'
+                    send_text_message(text_path, message, markup, bot)
 
-                send_text_message(text_path, message, markup, bot)
-
-                bot.register_next_step_handler(message, start)
+                    bot.register_next_step_handler(message, start)
 
     @bot.pre_checkout_query_handler(func=lambda query: True)
     def checkout(pre_checkout_query):

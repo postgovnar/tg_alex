@@ -5,7 +5,7 @@ from functions import *
 
 def bot_main(context):
     bot = telebot.TeleBot(context.token)
-
+    temp_list = []
     markup_start = types.ReplyKeyboardMarkup()
     markup_start.add(types.KeyboardButton('Подробнее про курс'))
     markup_start.add(types.KeyboardButton('Как проходят занятия?'))
@@ -34,10 +34,16 @@ def bot_main(context):
                 prices=[types.LabeledPrice(label='Курс', amount=10000)]
             )'''
 
-            markup = types.InlineKeyboardMarkup()
-            markup.row(types.InlineKeyboardButton(text='Перейти в канал', url=context.link_temp_chat))
-            bot.send_message(message.chat.id, "Сейчас курс купить нельзя. Открыта предварительная запись на него.", reply_markup=markup_start)
-            bot.reply_to(message, "Переходите в чат для записи", reply_markup=markup)
+            # markup = types.InlineKeyboardMarkup()
+            # markup.row(types.InlineKeyboardButton(text='Перейти в канал', url=context.link_temp_chat))
+            # bot.send_message(message.chat.id, "Сейчас курс купить нельзя. Открыта предварительная запись на него.", reply_markup=markup_start)
+            # bot.reply_to(message, "Переходите в чат для записи", reply_markup=markup)
+            text_path = f'data/texts/about/price_names.txt'
+            photo_path = f'data/photos/about/оплата_занятий.jpg'
+
+            temp_list.append(message.from_user.id)
+
+            send_photo_message(text_path, photo_path, message, types.ReplyKeyboardRemove(), bot)
 
         elif message.text == 'Подробнее про курс':
 
@@ -91,6 +97,24 @@ def bot_main(context):
             photo_path = f'data/photos/courses/{course_number}.jpg'
 
             send_photo_message(text_path, photo_path, message, markup, bot)
+
+        elif message.from_user.id in temp_list:
+            temp_list.remove(message.from_user.id)
+
+            bot.send_message(context.log_chat_id, message.text)
+
+            if context.payment_ready:
+                print('do_smth')
+            else:
+                markup = types.InlineKeyboardMarkup()
+                markup.row(types.InlineKeyboardButton(text='Перейти в канал', url=context.link_temp_chat))
+                markup.row(types.InlineKeyboardButton(text='Перейти в канал', url=context.link_temp_chat))
+
+                text_path = f'data/texts/about/after_price_false'
+
+                send_text_message(text_path, message, markup, bot)
+
+                bot.register_next_step_handler(message, start)
 
     @bot.pre_checkout_query_handler(func=lambda query: True)
     def checkout(pre_checkout_query):

@@ -1,21 +1,25 @@
 import telebot
 from telebot import types
 import re
-
+from functions import *
 
 def bot_main(context):
     bot = telebot.TeleBot(context['token'])
+
     markup_start = types.ReplyKeyboardMarkup()
     markup_start.add(types.KeyboardButton('Подробнее про курс'))
-    markup_start.add(types.KeyboardButton('Перейти к оплате'))
+    markup_start.add(types.KeyboardButton('Записаться на курс'))
 
     @bot.message_handler(commands=['start'])
     def start(message):
-        bot.reply_to(message, "Привет, это наш бот(текст 1)", reply_markup=markup_start)
+        text_path = f'data/texts/about/hello.txt'
+
+        send_text_message(text_path, message, markup_start, bot)
+
 
     @bot.message_handler(content_types=['text'])
     def text_handler(message):
-        if message.text == 'Перейти к оплате':
+        if message.text == 'Записаться на курс':
             '''
             bot.send_invoice(
                 chat_id=message.chat.id,
@@ -27,6 +31,7 @@ def bot_main(context):
                 start_parameter="test",
                 prices=[types.LabeledPrice(label='Курс', amount=10000)]
             )'''
+
             markup = types.InlineKeyboardMarkup()
             markup.row(types.InlineKeyboardButton(text='Перейти в канал', url=context['link_temp_chat']))
             bot.send_message(message.chat.id, "Сейчас курс купить нельзя. Открыта предварительная запись на него.", reply_markup=markup_start)
@@ -36,34 +41,47 @@ def bot_main(context):
             markup = types.ReplyKeyboardMarkup()
             markup.add(types.KeyboardButton('Программа курса'))
             markup.add(types.KeyboardButton('Как проходят занятия?'))
-            bot.reply_to(message, "Полотно про курс", reply_markup=markup)
+
+            text_path = f'data/texts/about/about_all.txt'
+            photo_path = f'data/photos/about/как_устроен_курс.jpg'
+
+            send_photo_message(text_path, photo_path, message, markup, bot)
 
         elif message.text == 'Как проходят занятия?':
-            bot.reply_to(message, "Полотно про орг моменты", reply_markup=markup_start)
+            text_path = f'data/texts/about/about_lessons.txt'
+            photo_path = f'data/photos/about/как_проходят_занятия.jpg'
+
+            send_photo_message(text_path, photo_path, message, markup_start, bot)
 
         elif message.text == 'Программа курса':
             markup = types.ReplyKeyboardMarkup()
             markup.add(types.KeyboardButton('Хочу больше узнать о каждом блоке'))
-            markup.add(types.KeyboardButton('Перейти к оплате'))
-            bot.reply_to(message, "Тут вкратце про курсы", reply_markup=markup)
+            markup.add(types.KeyboardButton('Записаться на курс'))
+
+            text_path = f'data/texts/about/course_program.txt'
+            photo_path = f'data/photos/about/программа_курса.jpg'
+
+            send_photo_message(text_path, photo_path, message, markup, bot)
 
         elif message.text == 'Хочу больше узнать о каждом блоке':
             markup = types.ReplyKeyboardMarkup()
             for i in context['courses']:
                 markup.add(types.KeyboardButton(i))
-            bot.reply_to(message, "Выберите курс о котором вы хотите знать больше", reply_markup=markup)
+
+            bot.reply_to(message, "Выберите раздел, который вас интересует.", reply_markup=markup)
 
         elif message.text in (context['courses']):
-            path = f'data/texts/course_{context['courses'].index(message.text) + 1}.txt'
-            with open(path,  'r', encoding="utf-8") as f:
-                text = ''.join(f.readlines())
             markup = types.ReplyKeyboardMarkup()
             for i in context['courses']:
                 markup.add(types.KeyboardButton(i))
-            markup.add(types.KeyboardButton('Перейти к оплате'))
-            bot.reply_to(message, text, reply_markup=markup)
+            markup.add(types.KeyboardButton('Записаться на курс'))
 
+            course_number = context['courses'].index(message.text) + 1
 
+            text_path = f'data/texts/courses/course_{course_number}.txt'
+            photo_path = f'data/photos/courses/{course_number}.jpg'
+
+            send_photo_message(text_path, photo_path, message, markup, bot)
 
     @bot.pre_checkout_query_handler(func=lambda query: True)
     def checkout(pre_checkout_query):
@@ -72,8 +90,10 @@ def bot_main(context):
     @bot.message_handler(content_types=['successful_payment'])
     def got_payment(message):
         url = bot.create_chat_invite_link(chat_id=context['chanel_id'], member_limit=1).invite_link
+
         markup = types.InlineKeyboardMarkup()
         markup.row(types.InlineKeyboardButton(text='Перейти в канал', url=url))
+
         bot.send_message(context['log_chat_id'], f'{message.from_user.id}, {message.from_user.first_name} {message.from_user.last_name}, @{message.from_user.username} купил курс')
         bot.send_message(message.chat.id, 'Вы оплатили курс(текст 8)', reply_markup=markup)
 

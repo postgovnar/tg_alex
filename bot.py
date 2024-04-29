@@ -1,12 +1,13 @@
 import telebot
 from telebot import types
+import re
 
 
 def bot_main(context):
     bot = telebot.TeleBot(context['token'])
     markup_start = types.ReplyKeyboardMarkup()
-    markup_start.add(types.KeyboardButton('Перейти к оплате'))
     markup_start.add(types.KeyboardButton('Подробнее про курс'))
+    markup_start.add(types.KeyboardButton('Перейти к оплате'))
 
     @bot.message_handler(commands=['start'])
     def start(message):
@@ -15,6 +16,7 @@ def bot_main(context):
     @bot.message_handler(content_types=['text'])
     def text_handler(message):
         if message.text == 'Перейти к оплате':
+            '''
             bot.send_invoice(
                 chat_id=message.chat.id,
                 title="Доступ к курсу(текст 4)",
@@ -24,7 +26,12 @@ def bot_main(context):
                 provider_token=context['pay_token'],
                 start_parameter="test",
                 prices=[types.LabeledPrice(label='Курс', amount=10000)]
-            )
+            )'''
+            markup = types.InlineKeyboardMarkup()
+            markup.row(types.InlineKeyboardButton(text='Перейти в канал', url=context['link_temp_chat']))
+            bot.send_message(message.chat.id, "Сейчас курс купить нельзя. Открыта предварительная запись на него.", reply_markup=markup_start)
+            bot.reply_to(message, "Переходите в чат для записи", reply_markup=markup)
+
         elif message.text == 'Подробнее про курс':
             markup = types.ReplyKeyboardMarkup()
             markup.add(types.KeyboardButton('Программа курса'))
@@ -36,21 +43,27 @@ def bot_main(context):
 
         elif message.text == 'Программа курса':
             markup = types.ReplyKeyboardMarkup()
-            markup.add(types.KeyboardButton('Ок, а что дальше?'))
-            bot.reply_to(message, "Полотно первое занятие", reply_markup=markup)
+            markup.add(types.KeyboardButton('Хочу больше узнать о каждом блоке'))
+            markup.add(types.KeyboardButton('Перейти к оплате'))
+            bot.reply_to(message, "Тут вкратце про курсы", reply_markup=markup)
 
-        elif message.text == 'Ок, а что дальше?':
+        elif message.text == 'Хочу больше узнать о каждом блоке':
             markup = types.ReplyKeyboardMarkup()
-            markup.add(types.KeyboardButton('Хорошо, что дальше?'))
-            bot.reply_to(message, "Полотно второе занятие", reply_markup=markup)
+            for i in context['courses']:
+                markup.add(types.KeyboardButton(i))
+            bot.reply_to(message, "Выберите курс о котором вы хотите знать больше", reply_markup=markup)
 
-        elif message.text == 'Хорошо, что дальше?':
+        elif message.text in (context['courses']):
+            path = f'data/texts/course_{context['courses'].index(message.text) + 1}.txt'
+            with open(path,  'r', encoding="utf-8") as f:
+                text = ''.join(f.readlines())
             markup = types.ReplyKeyboardMarkup()
-            markup.add(types.KeyboardButton('А что дальше?'))
-            bot.reply_to(message, "Полотно третье занятие", reply_markup=markup)
+            for i in context['courses']:
+                markup.add(types.KeyboardButton(i))
+            markup.add(types.KeyboardButton('Перейти к оплате'))
+            bot.reply_to(message, text, reply_markup=markup)
 
-        elif message.text == 'А что дальше?':
-            bot.reply_to(message, "Полотно четвертое занятие", reply_markup=markup_start)
+
 
     @bot.pre_checkout_query_handler(func=lambda query: True)
     def checkout(pre_checkout_query):

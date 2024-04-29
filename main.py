@@ -1,4 +1,5 @@
 from bot import bot_main
+from config import config
 context = {
     'token': '6749400221:AAGdCxorRoZSqnI0eJiUcuhlQXb_39cEF14',
     'chanel_id': '-1002023642883',

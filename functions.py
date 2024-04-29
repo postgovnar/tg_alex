@@ -1,7 +1,3 @@
-import telebot
-from telebot import types
-
-
 def send_text_message(text_path, message, markup, bot):
     with open(text_path, 'r', encoding="utf-8") as f:
         text = ''.join(f.readlines())

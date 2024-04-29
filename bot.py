@@ -1,13 +1,15 @@
 import telebot
 from telebot import types
-import re
 from functions import *
+
 
 def bot_main(context):
     bot = telebot.TeleBot(context['token'])
 
     markup_start = types.ReplyKeyboardMarkup()
     markup_start.add(types.KeyboardButton('Подробнее про курс'))
+    markup_start.add(types.KeyboardButton('Программа курса'))
+    markup_start.add(types.KeyboardButton('Как проходят занятия?'))
     markup_start.add(types.KeyboardButton('Записаться на курс'))
 
     @bot.message_handler(commands=['start'])
@@ -38,14 +40,11 @@ def bot_main(context):
             bot.reply_to(message, "Переходите в чат для записи", reply_markup=markup)
 
         elif message.text == 'Подробнее про курс':
-            markup = types.ReplyKeyboardMarkup()
-            markup.add(types.KeyboardButton('Программа курса'))
-            markup.add(types.KeyboardButton('Как проходят занятия?'))
 
             text_path = f'data/texts/about/about_all.txt'
             photo_path = f'data/photos/about/как_устроен_курс.jpg'
 
-            send_photo_message(text_path, photo_path, message, markup, bot)
+            send_photo_message(text_path, photo_path, message, markup_start, bot)
 
         elif message.text == 'Как проходят занятия?':
             text_path = f'data/texts/about/about_lessons.txt'
@@ -56,12 +55,19 @@ def bot_main(context):
         elif message.text == 'Программа курса':
             markup = types.ReplyKeyboardMarkup()
             markup.add(types.KeyboardButton('Хочу больше узнать о каждом блоке'))
+            markup.add(types.KeyboardButton('Темы лекций'))
             markup.add(types.KeyboardButton('Записаться на курс'))
 
             text_path = f'data/texts/about/course_program.txt'
             photo_path = f'data/photos/about/программа_курса.jpg'
 
             send_photo_message(text_path, photo_path, message, markup, bot)
+
+        elif message.text == 'Темы лекций':
+            text_path = f'data/texts/about/about_lectures.txt'
+            photo_path = f'data/photos/about/темы_лекций.jpg'
+
+            send_photo_message(text_path, photo_path, message, markup_start, bot)
 
         elif message.text == 'Хочу больше узнать о каждом блоке':
             markup = types.ReplyKeyboardMarkup()

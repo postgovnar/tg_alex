@@ -38,11 +38,11 @@ def bot_main(context):
 
         elif message.text == 'Не могу оплатить всю сумму сразу':
             markup = types.InlineKeyboardMarkup()
-            markup.row(types.InlineKeyboardButton(text='Перейти в чат поддержки', url=context.link_temp_chat))
-            bot.send_message(message.chat.id, 'Пишите, постараемся найти компромисс')
-            bot.register_next_step_handler(message, start)
+            markup.row(types.InlineKeyboardButton(text='Перейти в чат поддержки', url=context.help_chat_link))
+            bot.send_message(message.chat.id, 'Ссылка на чат поддержки.', reply_markup=markup)
+            bot.send_message(message.chat.id, 'Подберем наиболее удобный для вас способ оплаты', reply_markup=markup_start)
 
-        elif message.text == 'Подробнее про курс':
+        elif message.text == 'Подробнее про курс' or message.text == "Вернуться назад":
 
             text_path = f'data/texts/about/about_all.txt'
             photo_path = f'data/photos/about/как_устроен_курс.jpg'
@@ -57,8 +57,8 @@ def bot_main(context):
 
         elif message.text == 'Программа курса':
             markup = types.ReplyKeyboardMarkup()
-            markup.add(types.KeyboardButton('Хочу больше узнать о каждом блоке'))
             markup.add(types.KeyboardButton('Темы лекций'))
+            markup.add(types.KeyboardButton('Хочу больше узнать о каждом блоке'))
             markup.add(types.KeyboardButton('Записаться на курс'))
 
             text_path = f'data/texts/about/course_program.txt'
@@ -68,7 +68,6 @@ def bot_main(context):
 
         elif message.text == 'Темы лекций':
             markup = markup_start
-            markup.add(types.KeyboardButton('Программа курса'))
 
             text_path = f'data/texts/about/about_lectures.txt'
             photo_path = f'data/photos/about/темы_лекций.jpg'
@@ -79,8 +78,9 @@ def bot_main(context):
             markup = types.ReplyKeyboardMarkup()
             for i in context.courses:
                 markup.add(types.KeyboardButton(i))
+            markup.add(types.KeyboardButton("Вернуться назад"))
 
-            bot.reply_to(message, "Выберите раздел, который вас интересует.", reply_markup=markup)
+            bot.reply_to(message, "*Выберите пункт.*", reply_markup=markup, parse_mode="Markdown")
 
         elif message.text in context.courses:
             markup = types.ReplyKeyboardMarkup()
@@ -97,11 +97,13 @@ def bot_main(context):
 
         elif message.from_user.id in temp_list:
             if temp_list.count(message.from_user.id) == 2:
+                log(message, text=message.text)
                 temp_list.remove(message.from_user.id)
                 bot.send_message(context.log_chat_id, message.text)
                 bot.send_message(message.chat.id, 'В какие дни и в какое время вам удобнее всего ходить на занятия?')
 
             elif temp_list.count(message.from_user.id) == 1:
+                log(message, text=message.text)
                 temp_list.remove(message.from_user.id)
                 bot.send_message(context.log_chat_id, message.text)
                 if context.payment_ready:
@@ -120,7 +122,7 @@ def bot_main(context):
                 else:
                     markup = types.InlineKeyboardMarkup()
                     markup.row(types.InlineKeyboardButton(text='Перейти в чат участников', url=context.link_temp_chat))
-                    markup.row(types.InlineKeyboardButton(text='Перейти в чат поддержки', url=context.link_temp_chat))
+                    markup.row(types.InlineKeyboardButton(text='Перейти в чат поддержки', url=context.help_chat_link))
 
                     text_path = f'data/texts/about/after_price_false'
 

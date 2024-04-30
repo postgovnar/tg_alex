@@ -90,8 +90,8 @@ def bot_main(context):
 
             course_number = context.courses.index(message.text) + 1
 
-            text_path = f'data/texts/courses/course_{course_number}.txt'
-            photo_path = f'data/photos/courses/{course_number}.jpg'
+            text_path = f'../data/texts/courses/course_{course_number}.txt'
+            photo_path = f'../data/photos/courses/{course_number}.jpg'
 
             send_photo_message(text_path, photo_path, message, markup, bot)
 

@@ -14,15 +14,15 @@ def bot_main(context):
 
     @bot.message_handler(commands=['start'])
     def start(message):
-        text_path = f'data/texts/about/hello.txt'
+        text_path = f'../data/texts/about/hello.txt'
 
         send_text_message(text_path, message, markup_start, bot)
 
     @bot.message_handler(content_types=['text'])
     def text_handler(message):
         if message.text == 'Записаться на курс':
-            text_path = f'data/texts/about/price.txt'
-            photo_path = f'data/photos/about/оплата_занятий.jpg'
+            text_path = f'../data/texts/about/price.txt'
+            photo_path = f'../data/photos/about/оплата_занятий.jpg'
 
             markup = types.ReplyKeyboardMarkup()
             markup.add(types.InlineKeyboardButton('Записаться'))
@@ -33,7 +33,7 @@ def bot_main(context):
             temp_list.append(message.from_user.id)
             temp_list.append(message.from_user.id)
 
-            text_path = f'data/texts/about/price_names.txt'
+            text_path = f'../data/texts/about/price_names.txt'
             send_text_message(text_path, message, types.ReplyKeyboardRemove(), bot)
 
         elif message.text == 'Не могу оплатить всю сумму сразу':
@@ -44,14 +44,14 @@ def bot_main(context):
 
         elif message.text == 'Подробнее про курс' or message.text == "Вернуться назад":
 
-            text_path = f'data/texts/about/about_all.txt'
-            photo_path = f'data/photos/about/как_устроен_курс.jpg'
+            text_path = f'../data/texts/about/about_all.txt'
+            photo_path = f'../data/photos/about/как_устроен_курс.jpg'
 
             send_photo_message(text_path, photo_path, message, markup_start, bot)
 
         elif message.text == 'Как проходят занятия?':
-            text_path = f'data/texts/about/about_lessons.txt'
-            photo_path = f'data/photos/about/как_проходят_занятия.jpg'
+            text_path = f'../data/texts/about/about_lessons.txt'
+            photo_path = f'../data/photos/about/как_проходят_занятия.jpg'
 
             send_photo_message(text_path, photo_path, message, markup_start, bot)
 
@@ -61,16 +61,16 @@ def bot_main(context):
             markup.add(types.KeyboardButton('Хочу больше узнать о каждом блоке'))
             markup.add(types.KeyboardButton('Записаться на курс'))
 
-            text_path = f'data/texts/about/course_program.txt'
-            photo_path = f'data/photos/about/программа_курса.jpg'
+            text_path = f'../data/texts/about/course_program.txt'
+            photo_path = f'../data/photos/about/программа_курса.jpg'
 
             send_photo_message(text_path, photo_path, message, markup, bot)
 
         elif message.text == 'Темы лекций':
             markup = markup_start
 
-            text_path = f'data/texts/about/about_lectures.txt'
-            photo_path = f'data/photos/about/темы_лекций.jpg'
+            text_path = f'../data/texts/about/about_lectures.txt'
+            photo_path = f'../data/photos/about/темы_лекций.jpg'
 
             send_photo_message(text_path, photo_path, message, markup, bot)
 
@@ -124,7 +124,7 @@ def bot_main(context):
                     markup.row(types.InlineKeyboardButton(text='Перейти в чат участников', url=context.link_temp_chat))
                     markup.row(types.InlineKeyboardButton(text='Перейти в чат поддержки', url=context.help_chat_link))
 
-                    text_path = f'data/texts/about/after_price_false'
+                    text_path = f'../data/texts/about/after_price_false'
 
                     send_text_message(text_path, message, markup, bot)
 
